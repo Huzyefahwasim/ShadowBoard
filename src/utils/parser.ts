@@ -36,10 +36,11 @@ export const parseAgentResponse = (response: AnalyzeResponse): Record<string, Ag
     const extractPoints = (text: string) => text.split('. ').filter(s => s.length > 20).map(s => s.endsWith('.') ? s : s + '.');
 
     // Combine Agent Insights + Global Tasks for the Summary
+    // Increased limit to 300 chars to avoid cutting off key details
     const summaryPoints: (string | { text: string; source: 'cfo' | 'cmo' | 'policy' })[] = [
-        { text: cfoText.substring(0, 60) + (cfoText.length > 60 ? "..." : ""), source: 'cfo' },
-        { text: cmoText.substring(0, 60) + (cmoText.length > 60 ? "..." : ""), source: 'cmo' },
-        { text: policyText.substring(0, 60) + (policyText.length > 60 ? "..." : ""), source: 'policy' },
+        { text: cfoText.length > 300 ? cfoText.substring(0, 300) + "..." : cfoText, source: 'cfo' },
+        { text: cmoText.length > 300 ? cmoText.substring(0, 300) + "..." : cmoText, source: 'cmo' },
+        { text: policyText.length > 300 ? policyText.substring(0, 300) + "..." : policyText, source: 'policy' },
         ...response.tasks // Append the explicit tasks from API
     ];
 
