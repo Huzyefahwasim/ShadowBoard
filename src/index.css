@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    background-color: #0a0a0b;
+    color-scheme: dark;
+}
+
+html,
+body,
+#root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #0A0A0C;
+    /* Deepest Charcoal */
+    color: #EDEDED;
+}
+
+/* Glassmorphism utilities - Updated for "Expensive" feel */
+.glass-panel {
+    background: rgba(22, 22, 26, 0.6);
+    /* #16161A @ 60% */
+    backdrop-filter: blur(20px);
+    border: 1px solid #2D2D35;
+}
+
+.glass-card {
+    background: rgba(22, 22, 26, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid #2D2D35;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
