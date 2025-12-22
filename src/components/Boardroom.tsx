@@ -16,31 +16,44 @@ export const Boardroom = () => {
     const handleAnalyze = async (idea: string) => {
         setStep('analyzing');
 
-        // Simulate Analysis Delay
-        await new Promise(r => setTimeout(r, 2500));
+        // Live API Logic
+        try {
+            const response = await fetch('http://172.29.104.128:3000/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idea })
+            });
 
-        // Mock API Response matching the user's provided JSON structure
-        const mockApiResponse: DashboardResponse = {
-            transcript: `**CMO (Chief Marketing Officer)**
-To drive viral growth for "${idea}", I suggest we create engaging short-form videos showcasing our unique value proposition. We can collaborate with influencers in the niche to amplify our reach. The key is to create a buzz around our brand and make it trendy.
+            if (!response.ok) throw new Error('API request failed');
+
+            const data: DashboardResponse = await response.json();
+
+            // Parse the response using our utility
+            const parsedFeedbacks = parseAgentResponse(data);
+            setFeedbacks(parsedFeedbacks);
+
+        } catch (error) {
+            console.error("API Error, falling back to simulation:", error);
+
+            // Fallback Mock (Preserving original flavor for offline demo)
+            const mockApiResponse: DashboardResponse = {
+                transcript: `**SYSTEM ERROR**: Unable to reach ShadowBoard Core at 172.29.104.128. Only local simulation available.
+                
+**CMO (Chief Marketing Officer)**
+(Offline Simulation) This concept has viral potential if we leverage short-form video content.
 
 **CFO (Chief Financial Officer)**
-Hold on, let's not overspend on marketing. We need to ensure our burn rate is under control. I recommend allocating a specific budget for marketing and closely monitoring our ROI. We should focus on cost-effective strategies that provide a clear return on investment.
+(Offline Simulation) Financial modeling is unavailable. Proceed with caution regarding OpEx.
 
 **POLICY PILOT**
-Before we proceed with any strategy, we need to ensure compliance with relevant regulations. Specifically, we must avoid data privacy violations and clearly label any AI-generated content. We need to audit our data handling processes immediately.`,
-            tasks: [
-                "Define marketing budget",
-                "Develop compliant content strategy",
-                "Research cost-effective marketing channels"
-            ],
-            riskScore: idea.toLowerCase().includes('crypto') ? 8 : 4,
-            isVetoed: false
-        };
+(Offline Simulation) Compliance checks are offline. Manual audit recommended.`,
+                tasks: ["Check network connection", "Retry submission"],
+                riskScore: 5,
+                isVetoed: true
+            };
 
-        // Parse the response using our utility
-        const parsedFeedbacks = parseAgentResponse(mockApiResponse);
-        setFeedbacks(parsedFeedbacks);
+            setFeedbacks(parseAgentResponse(mockApiResponse));
+        }
 
         setActiveTab('overall');
         setStep('results');
