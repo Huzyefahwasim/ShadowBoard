@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IdeaInput } from './IdeaInput';
 import { AgentTab, type AgentFeedback } from './AgentTab';
 import { PersonaTriad } from './PersonaTriad';
@@ -6,23 +6,41 @@ import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { TrendingUp, Wallet, Shield, Layers } from 'lucide-react';
 
-import { parseAgentResponse, type DashboardResponse } from '../utils/parser';
+import { parseAgentResponse } from '../utils/parser';
+import type { AnalyzeResponse } from '../types/api';
+
+const API_BASE_URL = 'http://172.29.104.128:3000';
 
 export const Boardroom = () => {
     const [step, setStep] = useState<'input' | 'analyzing' | 'results'>('input');
     const [activeTab, setActiveTab] = useState<'cfo' | 'cmo' | 'policy' | 'overall'>('overall');
     const [feedbacks, setFeedbacks] = useState<Record<string, AgentFeedback>>({});
+    const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+    // Health Check on Mount
+    useEffect(() => {
+        const checkHealth = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/health`, { signal: AbortSignal.timeout(2000) });
+                if (res.ok) setApiStatus('online');
+                else setApiStatus('offline');
+            } catch (e) {
+                setApiStatus('offline');
+            }
+        };
+        checkHealth();
+    }, []);
 
     const handleAnalyze = async (idea: string) => {
         setStep('analyzing');
 
         // Live API Logic
         try {
-            // AbortController for 5s timeout
+            // AbortController for 30s timeout (Analysis takes time)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-            const response = await fetch('http://172.29.104.128:3000/analyze', {
+            const response = await fetch(`${API_BASE_URL}/analyze`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idea }),
@@ -33,7 +51,7 @@ export const Boardroom = () => {
 
             if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
 
-            const data: DashboardResponse = await response.json();
+            const data: AnalyzeResponse = await response.json();
 
             // Parse the response using our utility
             const parsedFeedbacks = parseAgentResponse(data);
@@ -42,19 +60,20 @@ export const Boardroom = () => {
         } catch (error: any) {
             console.error("API Fetch Failed:", error);
 
-            const errorMessage = error.name === 'AbortError' ? 'Connection Timed Out' : error.message;
+            const errorMessage = error.name === 'AbortError' ? 'Analysis Timed Out' : error.message;
 
             // Fallback Mock with Error Details
-            const mockApiResponse: DashboardResponse = {
+            const mockApiResponse: AnalyzeResponse = {
                 transcript: `**SYSTEM ERROR**: Connection Failed.
                 
 **DIAGNOSTICS**
 Status: ${errorMessage}
-Target: http://172.29.104.128:3000
+Target: ${API_BASE_URL}
+Health Check: ${apiStatus.toUpperCase()}
 
 *Possible fixes:*
-1. Ensure the API server is running.
-2. Check if the API server allows CORS from localhost.
+1. Ensure the API server is running at ${API_BASE_URL}.
+2. Check if the API server allows CORS.
 3. Verify your device is on the same network.`,
                 tasks: ["Check API Logs", "Verify Network", "Disable Firewall"],
                 riskScore: 10,
@@ -103,6 +122,20 @@ Target: http://172.29.104.128:3000
                                 <p className="text-gray-400 text-lg max-w-xl mx-auto font-light">
                                     Submit your strategic initiative for autonomous multi-agent analysis.
                                 </p>
+                            </div>
+                            <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                <span className="text-xs font-mono text-gray-400 uppercase tracking-wider">
+                                    System
+                                </span>
+                                <div className={clsx(
+                                    "w-2 h-2 rounded-full",
+                                    apiStatus === 'online' ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" :
+                                        apiStatus === 'checking' ? "bg-yellow-500 animate-pulse" :
+                                            "bg-red-500"
+                                )} />
+                                <span className={clsx("text-xs font-bold", apiStatus === 'online' ? "text-green-500" : apiStatus === 'checking' ? "text-yellow-500" : "text-red-500")}>
+                                    {apiStatus.toUpperCase()}
+                                </span>
                             </div>
                             <IdeaInput onSubmit={handleAnalyze} isAnalyzing={false} />
                         </motion.div>

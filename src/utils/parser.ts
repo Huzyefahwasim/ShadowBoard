@@ -1,19 +1,12 @@
 import type { AgentFeedback } from "../components/AgentTab";
+import type { AnalyzeResponse } from "../types/api";
 
-export interface DashboardResponse {
-    transcript: string;
-    tasks: string[];
-    riskScore: number;
-    isVetoed: boolean;
-}
-
-export const parseAgentResponse = (response: DashboardResponse): Record<string, AgentFeedback> => {
+export const parseAgentResponse = (response: AnalyzeResponse): Record<string, AgentFeedback> => {
     // 1. Extract Sections via Regex (More Robust)
     // Matches **Header** followed by any whitespace, then content, until next header or end
     const cmoMatch = response.transcript.match(/\*\*(?:CMO|Chief Marketing).*?\*\*[\s\S]*?([\s\S]*?)(?=\*\*(?:CFO|Chief Financial|POLICY)|$)/i);
     const cfoMatch = response.transcript.match(/\*\*(?:CFO|Chief Financial).*?\*\*[\s\S]*?([\s\S]*?)(?=\*\*(?:CMO|Chief Marketing|POLICY)|$)/i);
-    // Explicitly stop before "## Tasks" or new line with ##
-    const policyMatch = response.transcript.match(/\*\*(?:POLICY|Risk|Compliance).*?\*\*[\s\S]*?([\s\S]*?)(?=\*\*(?:CMO|CFO)|##\s*Tasks|$)/i);
+    const policyMatch = response.transcript.match(/\*\*(?:POLICY|Risk|Compliance).*?\*\*[\s\S]*?([\s\S]*?)(?=\*\*(?:CMO|CFO|## Tasks)|$)/i);
 
     const cmoText = cmoMatch && cmoMatch[1].trim().length > 0 ? cmoMatch[1].trim() : "Analysis pending... (Check API Response Format)";
     const cfoText = cfoMatch && cfoMatch[1].trim().length > 0 ? cfoMatch[1].trim() : "Analysis pending... (Check API Response Format)";
