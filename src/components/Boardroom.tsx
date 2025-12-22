@@ -18,13 +18,20 @@ export const Boardroom = () => {
 
         // Live API Logic
         try {
+            // AbortController for 5s timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
             const response = await fetch('http://172.29.104.128:3000/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idea })
+                body: JSON.stringify({ idea }),
+                signal: controller.signal
             });
 
-            if (!response.ok) throw new Error('API request failed');
+            clearTimeout(timeoutId);
+
+            if (!response.ok) throw new Error(`API Error: ${response.status} ${response.statusText}`);
 
             const data: DashboardResponse = await response.json();
 
@@ -32,23 +39,25 @@ export const Boardroom = () => {
             const parsedFeedbacks = parseAgentResponse(data);
             setFeedbacks(parsedFeedbacks);
 
-        } catch (error) {
-            console.error("API Error, falling back to simulation:", error);
+        } catch (error: any) {
+            console.error("API Fetch Failed:", error);
 
-            // Fallback Mock (Preserving original flavor for offline demo)
+            const errorMessage = error.name === 'AbortError' ? 'Connection Timed Out' : error.message;
+
+            // Fallback Mock with Error Details
             const mockApiResponse: DashboardResponse = {
-                transcript: `**SYSTEM ERROR**: Unable to reach ShadowBoard Core at 172.29.104.128. Only local simulation available.
+                transcript: `**SYSTEM ERROR**: Connection Failed.
                 
-**CMO (Chief Marketing Officer)**
-(Offline Simulation) This concept has viral potential if we leverage short-form video content.
+**DIAGNOSTICS**
+Status: ${errorMessage}
+Target: http://172.29.104.128:3000
 
-**CFO (Chief Financial Officer)**
-(Offline Simulation) Financial modeling is unavailable. Proceed with caution regarding OpEx.
-
-**POLICY PILOT**
-(Offline Simulation) Compliance checks are offline. Manual audit recommended.`,
-                tasks: ["Check network connection", "Retry submission"],
-                riskScore: 5,
+*Possible fixes:*
+1. Ensure the API server is running.
+2. Check if the API server allows CORS from localhost.
+3. Verify your device is on the same network.`,
+                tasks: ["Check API Logs", "Verify Network", "Disable Firewall"],
+                riskScore: 10,
                 isVetoed: true
             };
 
