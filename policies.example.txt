@@ -1,0 +1,6 @@
+- EU AI ACT 2026: Prohibits untargeted scraping of facial images. Requires labels for deepfakes/AI text.
+- PRIVACY: All AI apps must have a 'Human-in-the-loop' for financial decisions.
+- TAX: Digital solopreneur tax (v1.2) applies to cross-border AI services.
+- GDPR: User data must be anonymized after 90 days of inactivity.
+- SECURITY: All API endpoints must implement rate limiting and authentication.
+
