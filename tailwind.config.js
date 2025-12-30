@@ -7,12 +7,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0A0A0C', // Deepest Charcoal
-        surface: '#16161A',    // Application Surface
-        border: '#2D2D35',     // Thin Borders
-        cfo: '#FFB800',     // Cyber Amber
-        cmo: '#FF007A',     // Electric Rose
-        policy: '#00F0FF',  // Neon Cyan
+        background: '#050505', // Deep Black
+        surface: '#121212',    // Dark Surface
+        'card-light': '#E3E5E0', // Pale Sage/Cream Accent
+        primary: '#6EE7B7',    // Soft Mint Green
+        secondary: '#10B981',  // Deeper Green
+        border: '#27272a',     // Zinc-800
+        muted: '#71717a',      // Zinc-500
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

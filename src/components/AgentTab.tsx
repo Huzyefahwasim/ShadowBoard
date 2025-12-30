@@ -11,12 +11,24 @@ export interface AgentFeedback {
 }
 
 interface AgentTabProps {
-    feedback: AgentFeedback;
+    feedback: AgentFeedback | undefined;
     isActive: boolean;
 }
 
 export const AgentTab = ({ feedback, isActive }: AgentTabProps) => {
     if (!isActive) return null;
+
+    // Handle initial state where feedback might be undefined
+    if (!feedback) {
+        return (
+            <div className="h-full flex flex-col items-center justify-center text-zinc-500 opacity-50">
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center mb-4">
+                    <span className="text-2xl">?</span>
+                </div>
+                <p className="text-sm font-mono uppercase tracking-widest">Awaiting Analysis Data</p>
+            </div>
+        );
+    }
 
     const isCFO = feedback.agentId === 'cfo';
     const isCMO = feedback.agentId === 'cmo';
@@ -28,7 +40,7 @@ export const AgentTab = ({ feedback, isActive }: AgentTabProps) => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="h-full overflow-y-auto p-6 lg:p-10"
+            className="h-full overflow-y-auto p-8 lg:p-12 custom-scrollbar"
         >
             {/* Executive Summary Header */}
             <div className="mb-8 border-b border-white/10 pb-6">

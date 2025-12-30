@@ -1,16 +1,23 @@
-import { Layout } from './components/Layout';
-import { Boardroom } from './components/Boardroom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Dashboard } from './pages/Dashboard';
+import { LandingPage } from './pages/LandingPage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { SignupPage } from './pages/auth/SignupPage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   return (
-    <Layout>
-      <div className="w-full h-full flex flex-col overflow-hidden px-4 lg:px-8">
-        {/* Boardroom Area (Contains Personas + Content) */}
-        <section className="flex-1 min-h-0 relative">
-          <Boardroom />
-        </section>
-      </div>
-    </Layout>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 

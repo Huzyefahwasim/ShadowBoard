@@ -13,23 +13,60 @@ body,
     padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    /* overflow: hidden; - Removed to allow Landing Page scrolling */
     background-color: #0A0A0C;
     /* Deepest Charcoal */
     color: #EDEDED;
 }
 
-/* Glassmorphism utilities - Updated for "Expensive" feel */
-.glass-panel {
-    background: rgba(22, 22, 26, 0.6);
-    /* #16161A @ 60% */
-    backdrop-filter: blur(20px);
-    border: 1px solid #2D2D35;
+/* Theme Utilities - "Green Energy" Aesthetic */
+
+.card-dark {
+    background-color: #121212;
+    border: 1px solid #27272a;
+    border-radius: 1.5rem;
+    /* rounded-3xl */
+    color: #EDEDED;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.glass-card {
-    background: rgba(22, 22, 26, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid #2D2D35;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+.card-dark:hover {
+    border-color: #6EE7B7;
+    box-shadow: 0 10px 40px -10px rgba(110, 231, 183, 0.1);
+}
+
+.card-light {
+    background-color: #E3E5E0;
+    border: 1px solid transparent;
+    border-radius: 1.5rem;
+    /* rounded-3xl */
+    color: #121212;
+    transition: transform 0.2s ease;
+}
+
+.card-light:hover {
+    transform: translateY(-2px);
+}
+
+.text-accent {
+    color: #6EE7B7;
+}
+
+/* Custom Scrollbar for dark theme */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #27272a;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
 }
