@@ -4,11 +4,34 @@ import { AuthLayout } from '../../layouts/AuthLayout';
 export function SignupPage() {
     const navigate = useNavigate();
 
-    const handleSignup = (e: React.FormEvent) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate signup
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/dashboard');
+
+        // Assuming simple form structure: First Name, Last Name, Email, Password
+        const form = e.target as HTMLFormElement;
+        const email = (form.elements[2] as HTMLInputElement).value;
+        const password = (form.elements[3] as HTMLInputElement).value;
+        const username = (form.elements[0] as HTMLInputElement).value + (form.elements[1] as HTMLInputElement).value; // Simple username generation
+
+        try {
+            const response = await fetch('http://localhost:3001/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, username })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Account created! Please sign in.');
+                navigate('/login');
+            } else {
+                alert(data.error || 'Signup failed');
+            }
+        } catch (error) {
+            console.error('Signup error:', error);
+            alert('Failed to connect to server');
+        }
     };
 
     return (

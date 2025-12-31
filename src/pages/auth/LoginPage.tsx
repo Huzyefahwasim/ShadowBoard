@@ -4,11 +4,33 @@ import { AuthLayout } from '../../layouts/AuthLayout';
 export function LoginPage() {
     const navigate = useNavigate();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate login
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/dashboard');
+
+        const email = (e.target as any)[0].value;
+        const password = (e.target as any)[1].value;
+
+        try {
+            const response = await fetch('http://localhost:3001/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                navigate('/dashboard');
+            } else {
+                alert(data.error || 'Login failed');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Failed to connect to server');
+        }
     };
 
     return (
