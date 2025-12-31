@@ -27,3 +27,4 @@ dist-ssr
 server/node_modules
 *.db
 server/*.db
+*.tsbuildinfo

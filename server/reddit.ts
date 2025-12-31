@@ -12,7 +12,7 @@ export interface RedditPost {
 
 export class RedditService {
   private static readonly BASE_URL = "https://www.reddit.com";
-  
+
   /**
    * Search for relevant discussions on Reddit.
    * Note: This uses the public JSON API which is rate limited.
@@ -23,9 +23,9 @@ export class RedditService {
       // Create a search query focused on problems/questions related to the idea
       // We'll trust the caller to provide a good query, but we could refine it here
       const searchUrl = `${this.BASE_URL}/search.json?q=${encodeURIComponent(query)}&sort=relevance&t=year&limit=${limit}`;
-      
+
       console.log(`Searching Reddit for: ${query}`);
-      
+
       const response = await fetch(searchUrl, {
         headers: {
           // Use a generic user agent to avoid being blocked immediately
@@ -38,8 +38,8 @@ export class RedditService {
         return [];
       }
 
-      const data = await response.json();
-      
+      const data: any = await response.json();
+
       if (!data || !data.data || !data.data.children) {
         return [];
       }
@@ -70,7 +70,7 @@ export class RedditService {
     }
 
     let context = "Relevant discussions found on Reddit:\n\n";
-    
+
     posts.forEach((post, index) => {
       context += `${index + 1}. [${post.subreddit}] ${post.title}\n`;
       context += `   Score: ${post.score} | Comments: ${post.num_comments}\n`;

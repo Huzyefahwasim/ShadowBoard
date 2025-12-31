@@ -132,9 +132,11 @@ export class PolicyBot {
         let magA = 0;
         let magB = 0;
         for (let i = 0; i < a.length; i++) {
-            dot += a[i] * b[i];
-            magA += a[i] * a[i];
-            magB += b[i] * b[i];
+            const valA = a[i]!;
+            const valB = b[i]!;
+            dot += valA * valB;
+            magA += valA * valA;
+            magB += valB * valB;
         }
         return dot / (Math.sqrt(magA) * Math.sqrt(magB));
     }
