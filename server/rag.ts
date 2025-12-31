@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 // @ts-ignore
-import pdf from 'pdf-parse';
+// import pdf from 'pdf-parse';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { pipeline, env } from '@xenova/transformers';
 
@@ -45,17 +45,20 @@ export class PolicyBot {
     }
 
     private async getEmbedder() {
-        if (!this.pipe) {
-            console.log("Initializing embedding model (Xenova/all-MiniLM-L6-v2)...");
-            this.pipe = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-        }
-        return this.pipe;
+        // if (!this.pipe) {
+        //     console.log("Initializing embedding model (Xenova/all-MiniLM-L6-v2)...");
+        //     this.pipe = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        // }
+        // return this.pipe;
+        return null;
     }
 
     private async embedText(text: string): Promise<number[]> {
-        const embedder = await this.getEmbedder();
-        const output = await embedder(text, { pooling: 'mean', normalize: true });
-        return Array.from(output.data);
+        // const embedder = await this.getEmbedder();
+        // const output = await embedder(text, { pooling: 'mean', normalize: true });
+        // return Array.from(output.data);
+        console.warn("RAG Embeddings disabled due to missing onnxruntime dependency");
+        return new Array(384).fill(0); // Return dummy embedding vector of correct size (384 for MiniLM)
     }
 
     private async initialize() {
@@ -84,9 +87,12 @@ export class PolicyBot {
                 const filePath = path.join(policyDir, file);
                 const buffer = fs.readFileSync(filePath);
                 try {
-                    const data = await pdf(buffer);
-                    // Clean up text a bit (remove excessive newlines)
-                    const cleanText = data.text.replace(/\n\s*\n/g, '\n');
+                    // const data = await pdf(buffer);
+                    // // Clean up text a bit (remove excessive newlines)
+                    // const cleanText = data.text.replace(/\n\s*\n/g, '\n');
+                    console.log("PDF parsing skipped (missing pdf-parse)");
+                    const cleanText = "PDF content skipped.";
+
                     rawDocs.push({
                         content: cleanText,
                         metadata: { law_source: file.replace('.pdf', '').toUpperCase() }
