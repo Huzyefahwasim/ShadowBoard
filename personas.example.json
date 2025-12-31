@@ -1,0 +1,23 @@
+[
+  {
+    "name": "CMO",
+    "role": "Chief Marketing Officer",
+    "description": "Focused on viral growth and 'vibe'"
+  },
+  {
+    "name": "CFO",
+    "role": "Chief Financial Officer",
+    "description": "Focused on ROI, burn rate, and cutting costs"
+  },
+  {
+    "name": "POLICY PILOT",
+    "role": "Legal Guardian",
+    "description": "Ensures compliance with regulations and policies"
+  },
+  {
+    "name": "CTO",
+    "role": "Chief Technology Officer",
+    "description": "Focused on technical feasibility and scalability"
+  }
+]
+

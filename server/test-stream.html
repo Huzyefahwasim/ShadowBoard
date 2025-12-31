@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Streaming Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+        #ideaInput { width: 500px; padding: 8px; font-size: 14px; }
+        button { padding: 8px 16px; font-size: 14px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #output { margin-top: 20px; max-height: 600px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #f9f9f9; }
+        .turn { margin: 15px 0; padding: 15px; border-left: 4px solid #007bff; background: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .speaker { font-weight: bold; color: #007bff; font-size: 16px; margin-bottom: 8px; }
+        .message { margin-top: 8px; line-height: 1.6; white-space: pre-wrap; }
+        .error { color: red; padding: 10px; background: #ffe6e6; border-radius: 4px; margin: 10px 0; }
+        .complete { color: green; font-weight: bold; padding: 15px; background: #e6ffe6; border-radius: 4px; margin: 15px 0; }
+        small { color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Streaming Conversation Test</h1>
+    <input type="text" id="ideaInput" placeholder="Enter business idea" value="Create an AI-powered social media app" style="width: 400px; padding: 5px;">
+    <button onclick="startStream()">Start Analysis</button>
+    <div id="output"></div>
+
+    <script>
+        async function startStream() {
+            const idea = document.getElementById('ideaInput').value;
+            const output = document.getElementById('output');
+            const button = document.querySelector('button');
+            
+            if (!idea.trim()) {
+                alert('Please enter a business idea');
+                return;
+            }
+            
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+            output.innerHTML = '<p>🔄 Connecting to server...</p>';
+
+            try {
+                console.log('Starting fetch request...');
+                const response = await fetch('http://localhost:3000/analyze/stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ idea: idea })
+                });
+
+                console.log('Response received:', response.status, response.statusText);
+                console.log('Content-Type:', response.headers.get('Content-Type'));
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+                }
+
+                if (!response.body) {
+                    throw new Error('Response body is null - streaming not supported');
+                }
+
+                console.log('Starting to read stream...');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let currentEvent = '';
+                let currentData = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        console.log('Stream ended');
+                        break;
+                    }
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    console.log('Received chunk:', chunk.substring(0, 100));
+                    buffer += chunk;
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        
+                        if (line.startsWith('event: ')) {
+                            currentEvent = line.substring(7).trim();
+                            console.log('Found event:', currentEvent);
+                        } else if (line.startsWith('data: ')) {
+                            currentData = line.substring(6).trim();
+                        } else if (line === '') {
+                            // Empty line indicates end of event
+                            if (currentEvent && currentData) {
+                                try {
+                                    const data = JSON.parse(currentData);
+                                    console.log('Parsing event:', currentEvent, data);
+                                    handleEvent(currentEvent, data);
+                                } catch (e) {
+                                    console.error('Failed to parse event data:', e, currentData);
+                                }
+                                currentEvent = '';
+                                currentData = '';
+                            }
+                        }
+                    }
+                }
+                
+                // Handle any remaining event in buffer
+                if (currentEvent && currentData) {
+                    try {
+                        const data = JSON.parse(currentData);
+                        handleEvent(currentEvent, data);
+                    } catch (e) {
+                        console.error('Failed to parse final event data:', e);
+                    }
+                }
+            } catch (error) {
+                output.innerHTML += `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Stream error:', error);
+                console.error('Error stack:', error.stack);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Start Analysis';
+            }
+        }
+
+        function handleEvent(eventType, data) {
+            const output = document.getElementById('output');
+            
+            if (eventType === 'start') {
+                output.innerHTML += `<p><strong>🚀 Conversation started</strong> - Analyzing: "${data.idea}"</p>`;
+            } else if (eventType === 'turn') {
+                const div = document.createElement('div');
+                div.className = 'turn';
+                div.innerHTML = `
+                    <div class="speaker">[${data.speaker}]</div>
+                    <div class="message">${data.message.replace(/\n/g, '<br>')}</div>
+                    <small>${new Date(data.timestamp).toLocaleTimeString()}</small>
+                `;
+                output.appendChild(div);
+                // Auto-scroll to bottom
+                output.scrollTop = output.scrollHeight;
+            } else if (eventType === 'complete') {
+                output.innerHTML += `
+                    <div class="complete">
+                        <h3>✅ Analysis Complete!</h3>
+                        <p><strong>Risk Score:</strong> ${data.riskScore} (${data.analysis.riskLevel})</p>
+                        <p><strong>Tasks:</strong> ${data.tasks.length} total</p>
+                        <p><strong>Vetoed:</strong> ${data.isVetoed ? 'Yes ❌' : 'No ✅'}</p>
+                        ${data.isVetoed && data.analysis.vetoDetails.reason ? `<p><strong>Veto Reason:</strong> ${data.analysis.vetoDetails.reason}</p>` : ''}
+                        <details>
+                            <summary>Full Results</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+            } else if (eventType === 'error') {
+                output.innerHTML += `<div class="error">❌ Error: ${data.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
